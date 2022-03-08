@@ -26,7 +26,7 @@ export const UserByPubAddrsQuery = extendType({
       resolve(_parent, args, ctx) {
         const user = ctx.prisma.user.findFirst({
           where: {
-            pubAddrs: '0xF3B4f467CdB68C56041b840683c5C2AFD87F2726',
+            pubAddrs: args.pubAddrs,
           },
         });
         return user;
@@ -42,6 +42,73 @@ export const UsersQuery = extendType({
       type: 'User',
       resolve(_parent, _args, ctx) {
         return ctx.prisma.user.findMany();
+      },
+    });
+  },
+});
+
+export const CreateUserMutation = extendType({
+  type: 'Mutation',
+  definition(t) {
+    t.nonNull.field('createUser', {
+      type: User,
+      args: {
+        pubAddrs: nonNull(stringArg()),
+        email: nonNull(stringArg()),
+      },
+      async resolve(_parent, args, ctx) {
+        const newUser = {
+          name: 'change',
+          pubAddrs: args.pubAddrs,
+          email: args.email,
+        };
+
+        return await ctx.prisma.user.create({
+          data: newUser,
+        });
+      },
+    });
+  },
+});
+
+export const UpdateUserMutation = extendType({
+  type: 'Mutation',
+  definition(t) {
+    t.nonNull.field('updateUser', {
+      type: User,
+      args: {
+        name: stringArg(),
+        email: stringArg(),
+      },
+      async resolve(_parent, args, ctx) {
+        if (!ctx.userPub) {
+          throw new Error(`You do not have permission to perform this action`);
+        }
+
+        let update;
+        if (args.name && args.email) {
+          update = {
+            name: args.name,
+            email: args.email,
+          };
+        } else if (args.name) {
+          update = {
+            name: args.name,
+          };
+        } else if (args.email) {
+          update = {
+            email: args.name,
+          };
+        } else {
+          throw new Error(`Missing arguments to update`);
+        }
+
+        return await ctx.prisma.user.update({
+          where: {
+            pubAddrs: ctx.userPub,
+          },
+          data: update,
+        });
       },
     });
   },

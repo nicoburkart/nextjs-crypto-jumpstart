@@ -5,7 +5,6 @@ import Layout from '../components/templates/Layout';
 
 const IndexPage = () => {
   const [user, setUser] = useState('');
-  fetch('localhost:3000/graphql');
 
   return (
     <Layout title="Home">

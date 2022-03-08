@@ -11,6 +11,11 @@ type Link {
   url: String
 }
 
+type Mutation {
+  createUser(email: String!, pubAddrs: String!): User!
+  updateUser(email: String, name: String): User!
+}
+
 type Query {
   link(id: String!): Link!
   links: [Link]!

@@ -1,10 +1,27 @@
-import { useState } from 'react';
+import { User } from '@prisma/client';
+import { useContext, useEffect, useState } from 'react';
+import { AppCtx } from '../../lib/ContextProvider';
 import { PrimaryButton } from '../atoms/Button';
 import { DropDownMenu } from '../molecules/DropDownMenu';
 import { NavigationItems } from '../molecules/NavigationItems';
 
 export const Navigation = () => {
   const [navOpen, setNavOpen] = useState(false);
+  const { userCtx } = useContext(AppCtx);
+
+  const testUser: User = {
+    id: '148d759c-9f0c-4d85-87fa-077ab81eda21',
+    createdAt: null,
+    image: null,
+    name: 'testuser',
+    email: 'nicob@web.de',
+    pubAddrs: '0x2f81Af83728F627DdC7Ef699D043AeB21f11d877',
+    role: 'USER',
+  };
+
+  useEffect(() => {
+    userCtx.dispatch({ type: 'login', payload: testUser });
+  }, []);
 
   return (
     <div>
@@ -13,7 +30,7 @@ export const Navigation = () => {
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center px-4 md:pl-0">
               <a className="flex-shrink-0" href="/">
-                BlockBurk.
+                {userCtx.user.name}
                 {/* <div className="w-12 h-12 bg-current rounded-full"></div> */}
               </a>
               <div className="hidden md:block">
@@ -24,7 +41,13 @@ export const Navigation = () => {
               <div className="flex items-center md:ml-6">
                 <div className="relative">
                   {true ? (
-                    <PrimaryButton>Connect Wallet</PrimaryButton>
+                    <PrimaryButton
+                      onClick={() => {
+                        userCtx.dispatch({ type: 'logout' });
+                      }}
+                    >
+                      Connect Wallet
+                    </PrimaryButton>
                   ) : (
                     <DropDownMenu
                       items={[{ label: 'hello' }, { label: 'world' }]}

@@ -2,10 +2,9 @@ import jwt from 'jsonwebtoken';
 
 const config = process.env;
 
-export const verifyToken = (req, res) => {
+export const verifyToken = (req, res): string | undefined => {
   const token =
-    req.body.token || req.query.token || req.headers['x-access-token'];
-
+    req.body?.token || req.query?.token || req.headers['x-access-token'];
   if (!token) {
     return undefined;
   }
