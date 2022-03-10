@@ -1,16 +1,17 @@
-import jwt from 'jsonwebtoken';
-
-const config = process.env;
+import { verify } from 'jsonwebtoken';
 
 export const verifyToken = (req, res): string | undefined => {
-  const token =
-    req.body?.token || req.query?.token || req.headers['x-access-token'];
+  const token = req.headers.authorization;
   if (!token) {
     return undefined;
   }
   try {
-    const userPub = String(jwt.verify(token, config.TOKEN_KEY));
-    return userPub;
+    const userPub = verify(token, process.env.TOKEN_KEY) as {
+      pubAddrs: string;
+      iat: number;
+      exp: number;
+    };
+    return userPub.pubAddrs;
   } catch (err) {
     return undefined;
   }

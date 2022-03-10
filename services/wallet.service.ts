@@ -1,3 +1,8 @@
+import { ethers } from 'ethers';
+import Web3 from 'web3';
+
+declare let window: any;
+
 export const connectWallet = async (): Promise<string | undefined> => {
   try {
     const { ethereum } = window;
@@ -32,4 +37,15 @@ export const checkIfWalletIsConnected = async (): Promise<
   return accounts.length !== 0 ? accounts[0] : undefined;
 };
 
-declare let window: any;
+export const signNonce = async (
+  pubAddrs: string,
+  nonce: number
+): Promise<string> => {
+  const web3 = new Web3(Web3.givenProvider);
+  const signedMessage = await web3.eth.personal.sign(
+    web3.utils.fromUtf8('Please sign this number to login: ' + nonce),
+    pubAddrs,
+    ''
+  );
+  return signedMessage;
+};

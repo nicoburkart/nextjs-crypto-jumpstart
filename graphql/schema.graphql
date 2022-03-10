@@ -12,7 +12,8 @@ type Link {
 }
 
 type Mutation {
-  createUser(email: String!, pubAddrs: String!): User!
+  authenticateUser(pubAddrs: String!, signature: String!): User!
+  createUser(pubAddrs: String!): User!
   updateUser(email: String, name: String): User!
 }
 
@@ -33,6 +34,8 @@ type User {
   id: String
   image: String
   name: String
+  nonce: Int
   pubAddrs: String
   role: Role
+  token: String
 }

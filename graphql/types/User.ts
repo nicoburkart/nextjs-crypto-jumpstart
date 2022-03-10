@@ -1,10 +1,16 @@
 import { enumType, extendType, nonNull, objectType, stringArg } from 'nexus';
+import {
+  generateToken,
+  publicAddressIsValid as isOwnerOfAddress,
+} from '../../lib/jsonWebToken';
 
 export const User = objectType({
   name: 'User',
   definition(t) {
     t.string('id');
     t.string('name');
+    t.int('nonce');
+    t.string('token');
     t.string('email');
     t.string('pubAddrs');
     t.string('image');
@@ -54,17 +60,56 @@ export const CreateUserMutation = extendType({
       type: User,
       args: {
         pubAddrs: nonNull(stringArg()),
-        email: nonNull(stringArg()),
       },
       async resolve(_parent, args, ctx) {
         const newUser = {
-          name: 'change',
+          name: args.pubAddrs.substring(0, 5),
+          nonce: Math.floor(Math.random() * 1000000),
           pubAddrs: args.pubAddrs,
-          email: args.email,
         };
 
         return await ctx.prisma.user.create({
           data: newUser,
+        });
+      },
+    });
+  },
+});
+
+export const AuthenticateUserMutation = extendType({
+  type: 'Mutation',
+  definition(t) {
+    t.nonNull.field('authenticateUser', {
+      type: User,
+      args: {
+        pubAddrs: nonNull(stringArg()),
+        signature: nonNull(stringArg()),
+      },
+      async resolve(_parent, args, ctx) {
+        const user = ctx.prisma.user.findFirst({
+          where: {
+            pubAddrs: args.pubAddrs,
+          },
+        });
+
+        //check signedNonce of user and generate token
+        const msg = `Please sign this number to login: ${(await user).nonce}`;
+        if (!isOwnerOfAddress(args.pubAddrs, msg, args.signature)) {
+          console.log('hello', args.pubAddrs, msg, args.signature);
+          throw new Error(`Signature invalid`);
+        }
+
+        const token = generateToken(args.pubAddrs);
+
+        //update user nonce
+        return await ctx.prisma.user.update({
+          where: {
+            pubAddrs: args.pubAddrs,
+          },
+          data: {
+            token: token,
+            nonce: Math.floor(Math.random() * 1000000),
+          },
         });
       },
     });
@@ -102,6 +147,7 @@ export const UpdateUserMutation = extendType({
         } else {
           throw new Error(`Missing arguments to update`);
         }
+        console.log(update, ctx.userPub);
 
         return await ctx.prisma.user.update({
           where: {

@@ -1,27 +1,27 @@
 import { User } from '@prisma/client';
-import { useContext, useEffect, useState } from 'react';
+import { useContext, useState } from 'react';
 import { AppCtx } from '../../lib/ContextProvider';
+import { login, updateUser } from '../../services/user';
 import { PrimaryButton } from '../atoms/Button';
 import { DropDownMenu } from '../molecules/DropDownMenu';
 import { NavigationItems } from '../molecules/NavigationItems';
 
-export const Navigation = () => {
+type Props = {
+  user?: User;
+};
+
+export const Navigation = (props: Props) => {
   const [navOpen, setNavOpen] = useState(false);
   const { userCtx } = useContext(AppCtx);
 
-  const testUser: User = {
-    id: '148d759c-9f0c-4d85-87fa-077ab81eda21',
-    createdAt: null,
-    image: null,
-    name: 'testuser',
-    email: 'nicob@web.de',
-    pubAddrs: '0x2f81Af83728F627DdC7Ef699D043AeB21f11d877',
-    role: 'USER',
+  const handleConnectWallet = async () => {
+    let user = await login();
+    console.log(user);
+    user = await updateUser('a new name!', 'newmail@web.de');
+    if (user) {
+      userCtx.dispatch({ type: 'login', payload: user });
+    }
   };
-
-  useEffect(() => {
-    userCtx.dispatch({ type: 'login', payload: testUser });
-  }, []);
 
   return (
     <div>
@@ -30,7 +30,7 @@ export const Navigation = () => {
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center px-4 md:pl-0">
               <a className="flex-shrink-0" href="/">
-                {userCtx.user.name}
+                {'hello ' + userCtx.user?.pubAddrs}
                 {/* <div className="w-12 h-12 bg-current rounded-full"></div> */}
               </a>
               <div className="hidden md:block">
@@ -41,11 +41,7 @@ export const Navigation = () => {
               <div className="flex items-center md:ml-6">
                 <div className="relative">
                   {true ? (
-                    <PrimaryButton
-                      onClick={() => {
-                        userCtx.dispatch({ type: 'logout' });
-                      }}
-                    >
+                    <PrimaryButton onClick={handleConnectWallet}>
                       Connect Wallet
                     </PrimaryButton>
                   ) : (
