@@ -1,6 +1,7 @@
-# TypeScript Next.js example
+# NextJS Crypto Jumpstart
 
-This is a really simple project that shows the usage of Next.js with TypeScript.
+A jumpstart project that has user management, web3 connection and a database
+
 
 ## Preview
 
