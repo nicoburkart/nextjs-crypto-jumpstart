@@ -14,6 +14,7 @@ export interface DDMItem {
   icon?: JSX.Element;
   label: string;
   desc?: string;
+  action?: () => any;
   link?: string;
 }
 
@@ -29,7 +30,7 @@ export const DropDownMenu = (props: Props) => {
             props.withBackground
               ? 'border border-gray-300 bg-white dark:bg-gray-800 shadow-sm'
               : ''
-          } flex items-center justify-center w-full rounded-md px-2 md:pr-0 py-2 text-sm font-medium text-gray-700 dark:text-gray-50 hover:bg-gray-50 dark:hover:bg-gray-500 focus:outline-none`}
+          } flex items-center justify-center w-full rounded-md px-2 py-2 text-sm font-medium text-gray-700 dark:text-gray-50 hover:bg-gray-50 dark:hover:bg-gray-500 focus:outline-none`}
           id="options-menu"
         >
           {props.label}
@@ -63,6 +64,7 @@ export const DropDownMenu = (props: Props) => {
                 <a
                   key={item.label}
                   href={item.link || '#'}
+                  onClick={item.action}
                   className={`${
                     item.icon ? 'flex items-center' : 'block'
                   } block px-4 py-2 text-md text-gray-700 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-100 dark:hover:text-white dark:hover:bg-gray-600`}

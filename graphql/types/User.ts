@@ -95,7 +95,6 @@ export const AuthenticateUserMutation = extendType({
         //check signedNonce of user and generate token
         const msg = `Please sign this number to login: ${(await user).nonce}`;
         if (!isOwnerOfAddress(args.pubAddrs, msg, args.signature)) {
-          console.log('hello', args.pubAddrs, msg, args.signature);
           throw new Error(`Signature invalid`);
         }
 
@@ -147,7 +146,6 @@ export const UpdateUserMutation = extendType({
         } else {
           throw new Error(`Missing arguments to update`);
         }
-        console.log(update, ctx.userPub);
 
         return await ctx.prisma.user.update({
           where: {

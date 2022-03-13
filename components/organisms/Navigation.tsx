@@ -1,7 +1,7 @@
 import { User } from '@prisma/client';
-import { useContext, useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import { AppCtx } from '../../lib/ContextProvider';
-import { login, updateUser } from '../../services/user';
+import { login, loginWithSession, logout } from '../../services/user';
 import { PrimaryButton } from '../atoms/Button';
 import { DropDownMenu } from '../molecules/DropDownMenu';
 import { NavigationItems } from '../molecules/NavigationItems';
@@ -14,24 +14,37 @@ export const Navigation = (props: Props) => {
   const [navOpen, setNavOpen] = useState(false);
   const { userCtx } = useContext(AppCtx);
 
+  useEffect(() => {
+    tryAutomaticLogin();
+  }, []);
+
+  const tryAutomaticLogin = async () => {
+    let user = await loginWithSession();
+    if (user) {
+      userCtx.dispatch({ type: 'login', payload: user });
+    }
+  };
+
   const handleConnectWallet = async () => {
     let user = await login();
-    console.log(user);
-    user = await updateUser('a new name!', 'newmail@web.de');
     if (user) {
       userCtx.dispatch({ type: 'login', payload: user });
     }
   };
 
   return (
-    <div>
+    <header>
       <nav className="bg-white dark:bg-gray-800 md:px-8 shadow py-4 ">
         <div className="max-w-7xl mx-auto md:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center px-4 md:pl-0">
-              <a className="flex-shrink-0" href="/">
-                {'hello ' + userCtx.user?.pubAddrs}
-                {/* <div className="w-12 h-12 bg-current rounded-full"></div> */}
+              <a className="flex flex-row items-center justify-center" href="/">
+                <div className="rounded-full overflow-hidden">
+                  <img src="assets/images/logo.png" className="w-12 h-12" />
+                </div>
+                <h1 className="hidden md:block title-font font-medium text-xl ml-4">
+                  CreativeContracts
+                </h1>
               </a>
               <div className="hidden md:block">
                 <NavigationItems></NavigationItems>
@@ -40,13 +53,21 @@ export const Navigation = (props: Props) => {
             <div className="block ml-auto">
               <div className="flex items-center md:ml-6">
                 <div className="relative">
-                  {true ? (
+                  {!userCtx.user.pubAddrs ? (
                     <PrimaryButton onClick={handleConnectWallet}>
                       Connect Wallet
                     </PrimaryButton>
                   ) : (
                     <DropDownMenu
-                      items={[{ label: 'hello' }, { label: 'world' }]}
+                      items={[
+                        {
+                          label: 'logout',
+                          action: () => {
+                            logout();
+                            userCtx.dispatch({ type: 'logout' });
+                          },
+                        },
+                      ]}
                       icon={
                         <img
                           src="assets/icons/profile.svg"
@@ -72,6 +93,6 @@ export const Navigation = (props: Props) => {
           <NavigationItems></NavigationItems>
         </div>
       </nav>
-    </div>
+    </header>
   );
 };

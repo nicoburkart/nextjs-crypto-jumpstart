@@ -31,6 +31,29 @@ export const login = async (): Promise<User | undefined> => {
   }
 };
 
+export const loginWithSession = async (): Promise<User | undefined> => {
+  try {
+    let pubAddrs = await checkIfWalletIsConnected();
+    if (!pubAddrs) {
+      return;
+    }
+
+    if (!localStorage.getItem('login-with-metamask:auth')) {
+      return;
+    }
+    //will return undefined if no user exists
+    const user = await getUser(pubAddrs);
+    //TODO: user will be returned although ther is no VALID session anymore
+    return user;
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+export const logout = async () => {
+  localStorage.removeItem('login-with-metamask:auth');
+};
+
 const getUser = async (pubAddrs: string): Promise<User | undefined> => {
   try {
     const data = await apolloClient.query({
