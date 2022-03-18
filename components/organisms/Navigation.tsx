@@ -2,9 +2,10 @@ import { User } from '@prisma/client';
 import { useContext, useEffect, useState } from 'react';
 import { AppCtx } from '../../lib/ContextProvider';
 import { login, loginWithSession, logout } from '../../services/user';
-import { PrimaryButton } from '../atoms/Button';
+import { PrimaryButton } from '../atoms/Buttons';
 import { DropDownMenu } from '../molecules/DropDownMenu';
 import { NavigationItems } from '../molecules/NavigationItems';
+import { Container } from '../templates/Container';
 
 type Props = {
   user?: User;
@@ -35,8 +36,8 @@ export const Navigation = (props: Props) => {
   return (
     <header>
       <nav className="bg-white dark:bg-gray-800 md:px-8 shadow py-4 ">
-        <div className="max-w-7xl mx-auto md:px-8">
-          <div className="flex items-center justify-between h-16">
+        <Container>
+          <div className="flex items-center justify-between h-16 w-full">
             <div className="flex items-center px-4 md:pl-0">
               <a className="flex flex-row items-center justify-center" href="/">
                 <div className="rounded-full overflow-hidden">
@@ -88,7 +89,7 @@ export const Navigation = (props: Props) => {
               </button>
             </div>
           </div>
-        </div>
+        </Container>
         <div className={navOpen ? '' : 'hidden' + ' md:hidden'}>
           <NavigationItems></NavigationItems>
         </div>

@@ -2,7 +2,6 @@
 
 A jumpstart project that has user management, web3 connection and a database
 
-
 ## Preview
 
 Tech Stack:
@@ -13,8 +12,7 @@ Tech Stack:
 - Apollo Client as the GraphQL client
 - Prisma as the ORM for migrations and database access
 - PostgreSQL as the database
-- AWS S3 for uploading images
-- Auth0 for authentication
+- Wagmi for wallet and blockchain integration
 - TypeScript as the programming language
 - TailwindCSS a utility-first CSS framework
 - Vercel for deployment
@@ -27,6 +25,8 @@ npm install
 
 --- Database:
 
+!Change link to DB in .env!
+
 create Tables in DB run: (defined in schema.prisma)
 npx prisma db push
 
@@ -35,5 +35,10 @@ npx prisma db seed
 
 to view DB run:
 npx prisma studio
+
+--- Web3:
+
+Change name of app in WalletLinkConnector
+Change AlchemyID/InfuraID for
 
 ## Deploy

@@ -4,12 +4,15 @@ import '../styles/global.css';
 import { ApolloProvider } from '@apollo/client';
 import apolloClient from '../lib/apollo';
 import { CtxProvider } from '../lib/ContextProvider';
+import { WagmiProvider } from 'wagmi';
 
 function App({ Component, pageProps }: AppProps) {
   return (
     <CtxProvider>
       <ApolloProvider client={apolloClient}>
-        <Component {...pageProps} />
+        <WagmiProvider>
+          <Component {...pageProps} />
+        </WagmiProvider>
       </ApolloProvider>
     </CtxProvider>
   );
