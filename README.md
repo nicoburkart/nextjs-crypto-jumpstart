@@ -38,7 +38,7 @@ npx prisma studio
 
 --- Web3:
 
-Change name of app in WalletLinkConnector
-Change AlchemyID/InfuraID for
+Change name of app in WalletLinkConnector in wagmi.service.ts
+Change InfuraID for WalletConnectConnector in wagmi.service.ts
 
 ## Deploy

@@ -6,48 +6,22 @@ import {
   UserByPubAddrsQuery,
 } from '../graphql/DocumentNodes/user';
 import apolloClient from '../lib/apollo';
-import {
-  checkIfWalletIsConnected,
-  connectWallet,
-  signNonce,
-} from './wallet.service';
+import { signNonce } from './wallet.service';
 
-export const login = async (): Promise<User | undefined> => {
-  try {
-    let pubAddrs = await checkIfWalletIsConnected();
-    if (!pubAddrs) {
-      pubAddrs = await connectWallet();
-    }
-    let user = await getUser(pubAddrs);
-    if (!user) {
-      user = await signUp(pubAddrs);
-    }
+export const login = async (pubAddrs: string): Promise<User | undefined> => {
+  let user = await getUser(pubAddrs);
+  if (!user) {
+    user = await signUp(pubAddrs);
+  }
+
+  if (localStorage.getItem('login-with-metamask:auth')) {
+    //TODO: user will be returned although there is no VALID session anymore
+  } else {
     const signedMessage = await signNonce(user.pubAddrs, user.nonce);
     user = await authenticate(user.pubAddrs, signedMessage);
-
-    return user;
-  } catch (error) {
-    console.log(error);
   }
-};
 
-export const loginWithSession = async (): Promise<User | undefined> => {
-  try {
-    let pubAddrs = await checkIfWalletIsConnected();
-    if (!pubAddrs) {
-      return;
-    }
-
-    if (!localStorage.getItem('login-with-metamask:auth')) {
-      return;
-    }
-    //will return undefined if no user exists
-    const user = await getUser(pubAddrs);
-    //TODO: user will be returned although ther is no VALID session anymore
-    return user;
-  } catch (error) {
-    console.log(error);
-  }
+  return user;
 };
 
 export const logout = async () => {

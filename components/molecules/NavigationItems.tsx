@@ -11,8 +11,8 @@ export const NavigationItems = () => {
         active={router.pathname === '/'}
       ></NavigationItem>
       <NavigationItem
-        title="Gallery"
-        active={router.pathname === '/gallery'}
+        title="About"
+        active={router.pathname === '/about'}
       ></NavigationItem>
       <NavigationItem
         title="Content"

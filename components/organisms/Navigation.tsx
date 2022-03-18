@@ -1,11 +1,13 @@
 import { User } from '@prisma/client';
 import { useContext, useEffect, useState } from 'react';
+import { useAccount } from 'wagmi';
 import { AppCtx } from '../../lib/ContextProvider';
-import { login, loginWithSession, logout } from '../../services/user';
+import { login, logout } from '../../services/user';
 import { PrimaryButton } from '../atoms/Buttons';
 import { DropDownMenu } from '../molecules/DropDownMenu';
 import { NavigationItems } from '../molecules/NavigationItems';
 import { Container } from '../templates/Container';
+import { WalletConnector } from './WalletConnector';
 
 type Props = {
   user?: User;
@@ -13,29 +15,55 @@ type Props = {
 
 export const Navigation = (props: Props) => {
   const [navOpen, setNavOpen] = useState(false);
+  const [loadingUser, setLoadingUser] = useState(false);
+  const [{ data: accountData }, disconnect] = useAccount();
   const { userCtx } = useContext(AppCtx);
 
   useEffect(() => {
-    tryAutomaticLogin();
-  }, []);
+    loginUser();
+  }, [accountData]);
 
-  const tryAutomaticLogin = async () => {
-    let user = await loginWithSession();
-    if (user) {
-      userCtx.dispatch({ type: 'login', payload: user });
+  const loginUser = async () => {
+    try {
+      if (
+        !loadingUser &&
+        accountData &&
+        userCtx.user.pubAddrs !== accountData.address
+      ) {
+        setLoadingUser(true);
+        const user = await login(accountData.address);
+        if (user) {
+          userCtx.dispatch({ type: 'login', payload: user });
+        }
+        setLoadingUser(false);
+      }
+    } catch {
+      disconnect();
+      setLoadingUser(false);
     }
   };
 
-  const handleConnectWallet = async () => {
-    let user = await login();
-    if (user) {
-      userCtx.dispatch({ type: 'login', payload: user });
-    }
+  const ProfileMenu = () => {
+    return (
+      <DropDownMenu
+        items={[
+          {
+            label: 'logout',
+            action: () => {
+              disconnect();
+              logout();
+              userCtx.dispatch({ type: 'logout' });
+            },
+          },
+        ]}
+        icon={<img src="assets/icons/profile.svg" className="h-12 w-12"></img>}
+      ></DropDownMenu>
+    );
   };
 
   return (
     <header>
-      <nav className="bg-white dark:bg-gray-800 md:px-8 shadow py-4 ">
+      <nav className="bg-white shadow py-4 ">
         <Container>
           <div className="flex items-center justify-between h-16 w-full">
             <div className="flex items-center px-4 md:pl-0">
@@ -53,31 +81,21 @@ export const Navigation = (props: Props) => {
             </div>
             <div className="block ml-auto">
               <div className="flex items-center md:ml-6">
-                <div className="relative">
-                  {!userCtx.user.pubAddrs ? (
-                    <PrimaryButton onClick={handleConnectWallet}>
-                      Connect Wallet
-                    </PrimaryButton>
-                  ) : (
-                    <DropDownMenu
-                      items={[
-                        {
-                          label: 'logout',
-                          action: () => {
-                            logout();
-                            userCtx.dispatch({ type: 'logout' });
-                          },
-                        },
-                      ]}
-                      icon={
-                        <img
-                          src="assets/icons/profile.svg"
-                          className="h-12 w-12"
-                        ></img>
-                      }
-                    ></DropDownMenu>
-                  )}
-                </div>
+                {loadingUser ? (
+                  <img
+                    className="animate-spin"
+                    src="assets/icons/loading.svg"
+                    alt=""
+                  />
+                ) : (
+                  <div className="relative">
+                    {!accountData ? (
+                      <WalletConnector></WalletConnector>
+                    ) : (
+                      <ProfileMenu></ProfileMenu>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
             <div className="flex md:hidden">

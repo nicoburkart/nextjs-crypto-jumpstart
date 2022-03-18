@@ -13,7 +13,7 @@ export const NavigationItem = ({ title, active }: Props) => {
           (active ? 'text-gray-800' : 'text-gray-400') +
           ' hover:text-gray-800 dark:hover:text-white block md:inline px-3 py-2 rounded-md text-base md:text-md font-medium'
         }
-        href="/#"
+        href={'/' + title.toLowerCase()}
       >
         {title}
       </a>
