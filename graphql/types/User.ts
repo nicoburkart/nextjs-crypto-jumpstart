@@ -10,11 +10,18 @@ export const User = objectType({
     t.string('id');
     t.string('name');
     t.int('nonce');
-    t.string('token');
     t.string('email');
     t.string('pubAddrs');
     t.string('image');
     t.field('role', { type: Role });
+  },
+});
+
+export const Session = objectType({
+  name: 'Session',
+  definition(t) {
+    t.string('token');
+    t.int('nonce');
   },
 });
 
@@ -79,8 +86,8 @@ export const CreateUserMutation = extendType({
 export const AuthenticateUserMutation = extendType({
   type: 'Mutation',
   definition(t) {
-    t.nonNull.field('authenticateUser', {
-      type: User,
+    t.nonNull.field('session', {
+      type: Session,
       args: {
         pubAddrs: nonNull(stringArg()),
         signature: nonNull(stringArg()),
@@ -91,9 +98,10 @@ export const AuthenticateUserMutation = extendType({
             pubAddrs: args.pubAddrs,
           },
         });
+        const authNonce = (await user).nonce;
 
         //check signedNonce of user and generate token
-        const msg = `Please sign this number to login: ${(await user).nonce}`;
+        const msg = `Please sign this number to login: ${authNonce}`;
         if (!isOwnerOfAddress(args.pubAddrs, msg, args.signature)) {
           throw new Error(`Signature invalid`);
         }
@@ -101,15 +109,15 @@ export const AuthenticateUserMutation = extendType({
         const token = generateToken(args.pubAddrs);
 
         //update user nonce
-        return await ctx.prisma.user.update({
+        await ctx.prisma.user.update({
           where: {
             pubAddrs: args.pubAddrs,
           },
           data: {
-            token: token,
             nonce: Math.floor(Math.random() * 1000000),
           },
         });
+        return { token: token, nonce: authNonce };
       },
     });
   },

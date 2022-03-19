@@ -12,8 +12,8 @@ type Link {
 }
 
 type Mutation {
-  authenticateUser(pubAddrs: String!, signature: String!): User!
   createUser(pubAddrs: String!): User!
+  session(pubAddrs: String!, signature: String!): Session!
   updateUser(email: String, name: String): User!
 }
 
@@ -29,6 +29,11 @@ enum Role {
   USER
 }
 
+type Session {
+  nonce: Int
+  token: String
+}
+
 type User {
   email: String
   id: String
@@ -37,5 +42,4 @@ type User {
   nonce: Int
   pubAddrs: String
   role: Role
-  token: String
 }

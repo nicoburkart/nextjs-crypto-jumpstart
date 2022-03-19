@@ -1,41 +1,79 @@
-import { User } from '@prisma/client';
 import { useContext, useEffect, useState } from 'react';
+import { useAccount, useSignMessage } from 'wagmi';
 import { AppCtx } from '../../lib/ContextProvider';
-import { login, loginWithSession, logout } from '../../services/user';
-import { PrimaryButton } from '../atoms/Buttons';
+import { getSession, getUser, logout, signUp } from '../../services/user';
 import { DropDownMenu } from '../molecules/DropDownMenu';
 import { NavigationItems } from '../molecules/NavigationItems';
 import { Container } from '../templates/Container';
+import { WalletConnector } from './WalletConnector';
 
-type Props = {
-  user?: User;
-};
-
-export const Navigation = (props: Props) => {
+export const Navigation = () => {
   const [navOpen, setNavOpen] = useState(false);
+  const [loadingUser, setLoadingUser] = useState(false);
+  const [{ data: accountData }, disconnect] = useAccount();
+  const [, signMessage] = useSignMessage();
   const { userCtx } = useContext(AppCtx);
 
   useEffect(() => {
-    tryAutomaticLogin();
-  }, []);
+    loginUser();
+  }, [accountData]);
 
-  const tryAutomaticLogin = async () => {
-    let user = await loginWithSession();
-    if (user) {
-      userCtx.dispatch({ type: 'login', payload: user });
+  const loginUser = async () => {
+    try {
+      if (
+        !loadingUser &&
+        accountData &&
+        userCtx.user.pubAddrs !== accountData.address
+      ) {
+        setLoadingUser(true);
+        let user = await getUser(accountData.address);
+        if (!user) {
+          user = await signUp(accountData.address);
+        }
+        let isAuthenticated = false;
+        if (localStorage.getItem('session-token:auth')) {
+          isAuthenticated = true;
+          //TODO: user will be returned although there is no VALID session anymore
+        } else {
+          const signedMessage = await signMessage({
+            message: 'Please sign this number to login: ' + user.nonce,
+          });
+          isAuthenticated = await getSession(user.pubAddrs, signedMessage.data);
+        }
+
+        if (user && isAuthenticated) {
+          userCtx.dispatch({ type: 'login', payload: user });
+        }
+        setLoadingUser(false);
+      }
+    } catch (error) {
+      console.log(error);
+      disconnect();
+      setLoadingUser(false);
     }
   };
 
-  const handleConnectWallet = async () => {
-    let user = await login();
-    if (user) {
-      userCtx.dispatch({ type: 'login', payload: user });
-    }
+  const ProfileMenu = () => {
+    return (
+      <DropDownMenu
+        items={[
+          {
+            label: 'logout',
+            action: () => {
+              disconnect();
+              logout();
+              userCtx.dispatch({ type: 'logout' });
+            },
+          },
+        ]}
+        icon={<img src="assets/icons/profile.svg" className="h-12 w-12"></img>}
+      ></DropDownMenu>
+    );
   };
 
   return (
     <header>
-      <nav className="bg-white dark:bg-gray-800 md:px-8 shadow py-4 ">
+      <nav className="bg-white shadow py-4 ">
         <Container>
           <div className="flex items-center justify-between h-16 w-full">
             <div className="flex items-center px-4 md:pl-0">
@@ -53,31 +91,21 @@ export const Navigation = (props: Props) => {
             </div>
             <div className="block ml-auto">
               <div className="flex items-center md:ml-6">
-                <div className="relative">
-                  {!userCtx.user.pubAddrs ? (
-                    <PrimaryButton onClick={handleConnectWallet}>
-                      Connect Wallet
-                    </PrimaryButton>
-                  ) : (
-                    <DropDownMenu
-                      items={[
-                        {
-                          label: 'logout',
-                          action: () => {
-                            logout();
-                            userCtx.dispatch({ type: 'logout' });
-                          },
-                        },
-                      ]}
-                      icon={
-                        <img
-                          src="assets/icons/profile.svg"
-                          className="h-12 w-12"
-                        ></img>
-                      }
-                    ></DropDownMenu>
-                  )}
-                </div>
+                {loadingUser ? (
+                  <img
+                    className="animate-spin"
+                    src="assets/icons/loading.svg"
+                    alt=""
+                  />
+                ) : (
+                  <div className="relative">
+                    {!accountData ? (
+                      <WalletConnector></WalletConnector>
+                    ) : (
+                      <ProfileMenu></ProfileMenu>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
             <div className="flex md:hidden">

@@ -9,18 +9,12 @@ export const NavigationItems = () => {
       <NavigationItem
         title="Home"
         active={router.pathname === '/'}
+        href="/"
       ></NavigationItem>
       <NavigationItem
-        title="Gallery"
-        active={router.pathname === '/gallery'}
-      ></NavigationItem>
-      <NavigationItem
-        title="Content"
-        active={router.pathname === '/content'}
-      ></NavigationItem>
-      <NavigationItem
-        title="Contact"
-        active={router.pathname === '/contact'}
+        title="About"
+        active={router.pathname === '/about'}
+        href="/about"
       ></NavigationItem>
     </div>
   );
