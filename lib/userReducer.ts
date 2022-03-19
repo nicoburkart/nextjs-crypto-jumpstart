@@ -10,7 +10,6 @@ export const defaultUser: User = {
   id: '',
   createdAt: null,
   nonce: -1,
-  token: null,
   image: null,
   name: '',
   email: '',

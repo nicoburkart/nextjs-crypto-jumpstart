@@ -1,22 +1,18 @@
-import { User } from '@prisma/client';
 import { useContext, useEffect, useState } from 'react';
-import { useAccount } from 'wagmi';
+import { useAccount, useSignMessage } from 'wagmi';
 import { AppCtx } from '../../lib/ContextProvider';
-import { login, logout } from '../../services/user';
+import { authenticate, getUser, logout, signUp } from '../../services/user';
 import { PrimaryButton } from '../atoms/Buttons';
 import { DropDownMenu } from '../molecules/DropDownMenu';
 import { NavigationItems } from '../molecules/NavigationItems';
 import { Container } from '../templates/Container';
 import { WalletConnector } from './WalletConnector';
 
-type Props = {
-  user?: User;
-};
-
-export const Navigation = (props: Props) => {
+export const Navigation = () => {
   const [navOpen, setNavOpen] = useState(false);
   const [loadingUser, setLoadingUser] = useState(false);
   const [{ data: accountData }, disconnect] = useAccount();
+  const [, signMessage] = useSignMessage();
   const { userCtx } = useContext(AppCtx);
 
   useEffect(() => {
@@ -31,13 +27,31 @@ export const Navigation = (props: Props) => {
         userCtx.user.pubAddrs !== accountData.address
       ) {
         setLoadingUser(true);
-        const user = await login(accountData.address);
-        if (user) {
+        let user = await getUser(accountData.address);
+        if (!user) {
+          user = await signUp(accountData.address);
+        }
+        let isAuthenticated = false;
+        if (localStorage.getItem('session-token:auth')) {
+          isAuthenticated = true;
+          //TODO: user will be returned although there is no VALID session anymore
+        } else {
+          const signedMessage = await signMessage({
+            message: 'Please sign this number to login: ' + user.nonce,
+          });
+          isAuthenticated = await authenticate(
+            user.pubAddrs,
+            signedMessage.data
+          );
+        }
+
+        if (user && isAuthenticated) {
           userCtx.dispatch({ type: 'login', payload: user });
         }
         setLoadingUser(false);
       }
-    } catch {
+    } catch (error) {
+      console.log(error);
       disconnect();
       setLoadingUser(false);
     }
@@ -57,6 +71,7 @@ export const Navigation = (props: Props) => {
           },
         ]}
         icon={<img src="assets/icons/profile.svg" className="h-12 w-12"></img>}
+        label={userCtx.user.pubAddrs}
       ></DropDownMenu>
     );
   };

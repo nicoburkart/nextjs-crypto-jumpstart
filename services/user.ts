@@ -6,29 +6,12 @@ import {
   UserByPubAddrsQuery,
 } from '../graphql/DocumentNodes/user';
 import apolloClient from '../lib/apollo';
-import { signNonce } from './wallet.service';
-
-export const login = async (pubAddrs: string): Promise<User | undefined> => {
-  let user = await getUser(pubAddrs);
-  if (!user) {
-    user = await signUp(pubAddrs);
-  }
-
-  if (localStorage.getItem('login-with-metamask:auth')) {
-    //TODO: user will be returned although there is no VALID session anymore
-  } else {
-    const signedMessage = await signNonce(user.pubAddrs, user.nonce);
-    user = await authenticate(user.pubAddrs, signedMessage);
-  }
-
-  return user;
-};
 
 export const logout = async () => {
   localStorage.removeItem('login-with-metamask:auth');
 };
 
-const getUser = async (pubAddrs: string): Promise<User | undefined> => {
+export const getUser = async (pubAddrs: string): Promise<User | undefined> => {
   try {
     const data = await apolloClient.query({
       query: UserByPubAddrsQuery,
@@ -42,7 +25,7 @@ const getUser = async (pubAddrs: string): Promise<User | undefined> => {
   }
 };
 
-const signUp = async (pubAddrs: string): Promise<User> => {
+export const signUp = async (pubAddrs: string): Promise<User> => {
   try {
     const data = await apolloClient.mutate({
       mutation: CreateUserMutation,
@@ -58,10 +41,10 @@ const signUp = async (pubAddrs: string): Promise<User> => {
 };
 
 //returns token and nonce
-const authenticate = async (
+export const authenticate = async (
   pubAddrs: string,
   signature: string
-): Promise<User> => {
+): Promise<boolean> => {
   try {
     const data = await apolloClient.mutate({
       mutation: AuthenticateUserMutation,
@@ -70,11 +53,8 @@ const authenticate = async (
         signature,
       },
     });
-    localStorage.setItem(
-      'login-with-metamask:auth',
-      data.data?.authenticateUser.token
-    );
-    return Promise.resolve(data.data.authenticateUser);
+    localStorage.setItem('session-token:auth', data.data?.session.token);
+    return Promise.resolve(true);
   } catch (error) {
     return Promise.reject(error);
   }

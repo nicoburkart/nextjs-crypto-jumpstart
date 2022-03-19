@@ -6,7 +6,6 @@ export const UserByPubAddrsQuery = gql`
       id
       name
       nonce
-      token
       pubAddrs
       email
       image
@@ -21,7 +20,6 @@ export const CreateUserMutation = gql`
       id
       name
       nonce
-      token
       pubAddrs
       email
       image
@@ -32,15 +30,9 @@ export const CreateUserMutation = gql`
 
 export const AuthenticateUserMutation = gql`
   mutation ($pubAddrs: String!, $signature: String!) {
-    authenticateUser(pubAddrs: $pubAddrs, signature: $signature) {
-      id
-      name
+    session(pubAddrs: $pubAddrs, signature: $signature) {
       nonce
       token
-      pubAddrs
-      email
-      image
-      role
     }
   }
 `;
@@ -51,7 +43,6 @@ export const UpdateUserMutation = gql`
       id
       name
       nonce
-      token
       pubAddrs
       email
       image
