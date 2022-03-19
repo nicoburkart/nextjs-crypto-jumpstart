@@ -8,7 +8,7 @@ import {
 import apolloClient from '../lib/apollo';
 
 export const logout = async () => {
-  localStorage.removeItem('login-with-metamask:auth');
+  localStorage.removeItem('session-token:auth');
 };
 
 export const getUser = async (pubAddrs: string): Promise<User | undefined> => {
@@ -41,7 +41,7 @@ export const signUp = async (pubAddrs: string): Promise<User> => {
 };
 
 //returns token and nonce
-export const authenticate = async (
+export const getSession = async (
   pubAddrs: string,
   signature: string
 ): Promise<boolean> => {

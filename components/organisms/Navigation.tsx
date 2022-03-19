@@ -1,8 +1,7 @@
 import { useContext, useEffect, useState } from 'react';
 import { useAccount, useSignMessage } from 'wagmi';
 import { AppCtx } from '../../lib/ContextProvider';
-import { authenticate, getUser, logout, signUp } from '../../services/user';
-import { PrimaryButton } from '../atoms/Buttons';
+import { getSession, getUser, logout, signUp } from '../../services/user';
 import { DropDownMenu } from '../molecules/DropDownMenu';
 import { NavigationItems } from '../molecules/NavigationItems';
 import { Container } from '../templates/Container';
@@ -39,10 +38,7 @@ export const Navigation = () => {
           const signedMessage = await signMessage({
             message: 'Please sign this number to login: ' + user.nonce,
           });
-          isAuthenticated = await authenticate(
-            user.pubAddrs,
-            signedMessage.data
-          );
+          isAuthenticated = await getSession(user.pubAddrs, signedMessage.data);
         }
 
         if (user && isAuthenticated) {
@@ -71,7 +67,6 @@ export const Navigation = () => {
           },
         ]}
         icon={<img src="assets/icons/profile.svg" className="h-12 w-12"></img>}
-        label={userCtx.user.pubAddrs}
       ></DropDownMenu>
     );
   };
